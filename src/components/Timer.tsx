@@ -1,26 +1,27 @@
-import { useEffect, useRef, useState } from 'react';
-import { Timer as TimerProps } from '../store/timers-context.tsx';
+import { useEffect, useState } from 'react';
+import { Timer as TimerProps, useTimersConstext } from '../store/timers-context.tsx';
 import Container from './UI/Container.tsx';
 
 export default function Timer({ name, duration }: TimerProps) {
-  //this ref will hold the timer id
-  const interval = useRef<number | null>(null)
   //this state will manage the remaining time
   const [remainingTime, setRemainingTime] = useState(duration * 1000)
-
-  if (remainingTime <=0 && interval.current) {
-    clearInterval(interval.current)
-  }
+  const {isRunnig} = useTimersConstext()
 //if we dont use useEffect it will end up in a infinite loop setInterval will recreate every 50miliseconds
   useEffect(
     () => {
-      //setInterval is a js function that expects a functionaas a first param and second param is how many miliseconds will need to rerender the function
+      //setInterval is a js function that expects a functio as a first param and second param is how many miliseconds will need to rerender the function
       const timer = setInterval(() => {
-        setRemainingTime(prevTime => prevTime - 50)
+        if (isRunnig) {
+          setRemainingTime(prevTime => {
+            if (prevTime<= 0) {
+              return 0
+            }
+            return prevTime - 50})
+        }
+        return remainingTime
       }, 50)
-      interval.current = timer
       return ()=>clearInterval(timer)
-    }, []
+    }, [isRunnig]
   )
 
   //is time in seconds and has 2 decimal after the dot
